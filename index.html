@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ma Boutique en Ligne</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #f39c12;
+            --background-color: #f4f4f4;
+            --text-color: #333;
+            --card-background: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        nav {
+            background-color: #ffffff;
+            padding: 0.5rem;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        nav a {
+            color: var(--text-color);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            margin: 0.25rem;
+            border-radius: 4px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        nav a:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        main {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .product {
+            background-color: var(--card-background);
+            border: none;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .product:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        #cart-icon {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 0.7rem;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        #cart-icon:hover {
+            background-color: #e67e22;
+        }
+
+        #cart {
+            position: fixed;
+            top: 0;
+            right: -350px;
+            width: 350px;
+            height: 100vh;
+            background-color: var(--card-background);
+            border-left: 1px solid #ddd;
+            padding: 2rem;
+            overflow-y: auto;
+            transition: right 0.3s ease;
+            z-index: 999;
+            box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+        }
+
+        #cart.open {
+            right: 0;
+        }
+
+        #search-bar {
+            margin: 1rem 0;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        #search-bar input {
+            flex-grow: 1;
+            padding: 0.7rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        #categories {
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        #order-form {
+            margin-top: 2rem;
+            background-color: var(--card-background);
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.7rem 1.2rem;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 1rem;
+            margin: 4px 2px;
+            transition-duration: 0.3s;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        button:hover {
+            background-color: #3a7bd5;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        #product-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            #cart {
+                width: 100%;
+                right: -100%;
+            }
+
+            #search-bar {
+                flex-direction: column;
+            }
+
+            #categories {
+                flex-direction: column;
+            }
+
+            main {
+                padding: 1rem;
+            }
+
+            #product-list {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 1rem;
+            }
+        }
+
+        /* Form Styles */
+        input[type="text"], input[type="email"], textarea {
+            width: 100%;
+            padding: 0.7rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        /* Cart Styles */
+        #cart h2 {
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        #cart-items {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        #cart-items li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+
+        #cart-total {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.24/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Ma Boutique en Ligne</h1>
+    </header>
+    <nav>
+        <a href="#home" onclick="navigate('home')">Accueil</a>
+        <a href="#products" onclick="navigate('products')">Produits</a>
+        <a href="#order" onclick="navigate('order')">Commander</a>
+    </nav>
+    <main id="content">
+        <!-- Le contenu changera en fonction de la page -->
+    </main>
+    <div id="cart-icon" onclick="toggleCart()">🛒</div>
+    <div id="cart">
+        <h2>Panier</h2>
+        <ul id="cart-items"></ul>
+        <p>Total: <span id="cart-total">0</span>€</p>
+        <button onclick="generatePDF()">Télécharger le récapitulatif PDF</button>
+    </div>
+
+    <script>
+        // Contenu de la page d'accueil
+        const homePage = `
+            <h2>Bienvenue dans notre boutique</h2>
+            <p>Découvrez nos produits exceptionnels !</p>
+        `;
+
+        // Contenu de la page des produits
+        const productsPage = `
+            <h2>Nos Produits</h2>
+            <div id="search-bar">
+                <input type="text" id="search-input" placeholder="Rechercher un produit">
+                <button onclick="searchProducts()">Rechercher</button>
+            </div>
+            <div id="categories">
+                <button onclick="filterProducts('all')">Tous</button>
+                <button onclick="filterProducts('electronics')">Électronique</button>
+                <button onclick="filterProducts('clothing')">Vêtements</button>
+            </div>
+            <div id="product-list"></div>
+        `;
+
+        // Contenu de la page de commande
+        const orderPage = `
+            <h2>Passer une commande</h2>
+            <form id="order-form">
+                <label for="name">Nom :</label>
+                <input type="text" id="name" required>
+                <label for="email">Email :</label>
+                <input type="email" id="email" required>
+                <label for="address">Adresse :</label>
+                <textarea id="address" required></textarea>
+                <button type="submit">Commander</button>
+            </form>
+        `;
+
+        // Liste des produits
+        const products = [
+            { id: 1, name: "Smartphone", price: 300, category: "electronics" },
+            { id: 2, name: "Laptop", price: 800, category: "electronics" },
+            { id: 3, name: "T-shirt", price: 20, category: "clothing" },
+            { id: 4, name: "Jeans", price: 50, category: "clothing" },
+        ];
+
+        // Fonction pour afficher les produits
+        function displayProducts(productsToShow = products) {
+            const productList = document.getElementById('product-list');
+            productList.innerHTML = '';
+            productsToShow.forEach(product => {
+                const productDiv = document.createElement('div');
+                productDiv.className = 'product fade-in';
+                productDiv.innerHTML = `
+                    <h3>${product.name}</h3>
+                    <p>Prix : ${product.price}€</p>
+                    <p>Catégorie : ${product.category}</p>
+                    <button onclick="addToCart(${product.id}, '${product.name}', ${product.price})">Ajouter au panier</button>
+                `;
+                productList.appendChild(productDiv);
+            });
+        }
+
+        // Fonction pour changer le contenu de la page
+        function navigate(page) {
+            const content = document.getElementById('content');
+            content.style.opacity = '0';
+            setTimeout(() => {
+                switch(page) {
+                    case 'home':
+                        content.innerHTML = homePage;
+                        break;
+                    case 'products':
+                        content.innerHTML = productsPage;
+                        displayProducts();
+                        break;
+                    case 'order':
+                        content.innerHTML = orderPage;
+                        document.getElementById('order-form').addEventListener('submit', submitOrder);
+                        break;
+                }
+                content.style.opacity = '1';
+            }, 300);
+        }
+
+        // Initialiser la page d'accueil
+        navigate('home');
+
+        // Gestion du panier
+        let cart = [];
+        function addToCart(id, name, price) {
+            cart.push({id, name, price});
+            updateCart();
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCart();
+        }
+
+        function updateCart() {
+            const cartItems = document.getElementById('cart-items');
+            const cartTotal = document.getElementById('cart-total');
+            cartItems.innerHTML = '';
+            let total = 0;
+            cart.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span>${item.name} - ${item.price}€</span>
+                    <button onclick="removeFromCart(${index})">Supprimer</button>
+                `;
+                cartItems.appendChild(li);
+                total += item.price;
+            });
+            cartTotal.textContent = total;
+        }
+
+        // Fonction pour ouvrir/fermer le panier
+        function toggleCart() {
+            const cart = document.getElementById('cart');
+            cart.classList.toggle('open');
+        }
+
+        // Fonction de recherche
+        function searchProducts() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const filteredProducts = products.filter(product => 
+                product.name.toLowerCase().includes(searchTerm)
+            );
+            displayProducts(filteredProducts);
+        }
+
+        // Fonction de filtrage par catégorie
+        function filterProducts(category) {
+            const filteredProducts = category === 'all' ? products : products.filter(product => product.category === category);
+            displayProducts(filteredProducts);
+        }
+
+        // Fonction pour soumettre la commande
+        function submitOrder(e) {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const address = document.getElementById('address').value;
+            alert(`Commande passée pour ${name} (${email}) à l'adresse : ${address}\nTotal : ${document.getElementById('cart-total').textContent}€`);
+            generatePDF();
+            cart = []; // Réinitialiser le panier après la commande
+            updateCart();
+        }
+            /// La petite particularité qui fait plaisir////
+            function generatePDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    // En-tête personnalisé avec vos informations
+    doc.setFontSize(20);
+    doc.text('Récapitulatif de commande', 10, 20);
+
+    // Informations personnelles
+    doc.setFontSize(12);
+    doc.text('Nom : [Votre nom]', 10, 30); // Remplacez par votre nom
+    doc.text('Prénom : [Votre prénom]', 10, 40); // Remplacez par votre prénom
+    doc.text('Adresse légale : [Votre adresse]', 10, 50); // Remplacez par votre adresse
+    doc.text('Numéro de SIRET : [Votre numéro SIRET]', 10, 60); // Remplacez par votre numéro de SIRET si nécessaire
+    doc.text('Email : [Votre email]', 10, 70); // Remplacez par votre email
+
+    // Coordonnées de l'utilisateur qui a passé la commande
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+    const address = document.getElementById('address').value;
+
+    doc.text(`Commande passée par : ${name}`, 10, 90);
+    doc.text(`Email : ${email}`, 10, 100);
+    doc.text(`Adresse de livraison : ${address}`, 10, 110);
+
+    // Créer un tableau pour les articles dans le panier
+    let items = cart.map((item, index) => [
+        index + 1, 
+        item.name, 
+        item.price + "€"
+    ]);
+
+    doc.autoTable({
+        head: [['#', 'Article', 'Prix']],
+        body: items,
+        startY: 130
+    });
+
+    // Calcul du total
+    const total = cart.reduce((sum, item) => sum + item.price, 0);
+    doc.setFontSize(16);
+    doc.text(`Total: ${total}€`, 10, doc.autoTable.previous.finalY + 10);
+
+    // En-tête ou pied de page pour les informations judiciaires/légales
+    doc.setFontSize(10);
+    doc.text('Informations légales :', 10, doc.autoTable.previous.finalY + 30);
+    doc.text('[Votre nom complet], [Adresse légale], [Numéro de SIRET]', 10, doc.autoTable.previous.finalY + 40); // Remplacez par vos infos judiciaires
+    doc.text('Contact : [Votre email ou numéro de téléphone]', 10, doc.autoTable.previous.finalY + 50);
+
+    // Générer le PDF
+    doc.save('recap-commande.pdf');
+}
+    </script>
+</body>
+</html>
